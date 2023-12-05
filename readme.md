@@ -222,7 +222,9 @@ crack中启动的任务
         metadata.encode_md5("username")
         metadata.encode_md5("payload" , 0)
     
-        metadata.risk("高危").send()
+        local ev = metadata.risk("高危")
+        ev.subject = "发现弱口令"
+        -- todo risk ev api
     
         metadata.username = "admin"
         metadata.password = "123456"
