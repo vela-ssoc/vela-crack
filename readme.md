@@ -205,7 +205,7 @@ crack中启动的任务
 
 修改变量:
 - [metadata.username](#metadata)
-- [metadata.passwor](#metadata)
+- [metadata.password](#metadata)
 
 ```lua
     task.pipe(function(metadata)
@@ -222,7 +222,7 @@ crack中启动的任务
         metadata.encode_md5("username")
         metadata.encode_md5("payload" , 0)
     
-        metadata.risk("发现弱口令").send()
+        metadata.risk("高危").send()
     
         metadata.username = "admin"
         metadata.password = "123456"
