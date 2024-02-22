@@ -2,10 +2,10 @@ package crack
 
 import (
 	"github.com/vela-ssoc/vela-crack/help"
+	"github.com/vela-ssoc/vela-crack/thread"
 	"github.com/vela-ssoc/vela-kit/audit"
 	"github.com/vela-ssoc/vela-kit/dict"
 	"github.com/vela-ssoc/vela-kit/lua"
-	"github.com/vela-ssoc/vela-kit/thread"
 	"sync/atomic"
 	"time"
 )
@@ -28,7 +28,7 @@ func (t *Task) Skip() bool {
 	return atomic.LoadUint32(&t.skip) > 1
 }
 
-func (t *Task) Loop(pi int, via []string, thread *Thread) {
+func (t *Task) Loop(pi int, via []string, pool *thread.Pool) {
 
 	payload := t.option.Intruder.Payload[pi].Iterator()
 	if payload == nil {
@@ -53,30 +53,23 @@ func (t *Task) Loop(pi int, via []string, thread *Thread) {
 				},
 			}
 			time.Sleep(t.option.Interval)
-			thread.Invoke(m)
+			pool.Invoke(m)
 			continue
 		}
 
-		t.Loop(pi+1, via, thread)
+		t.Loop(pi+1, via, pool)
 	}
 }
 
 func (t *Task) doIntruder() {
-	var pool *Thread
+	pool := thread.New(xEnv, t.option.Pool, t.Call)
 
-	pool = NewPoolThread(t.option.Pool, func(v interface{}) {
-		t.Call(v)
-		pool.Done()
-	})
-
-	defer thread.Release()
+	defer pool.Close()
 
 	via := make([]string, len(t.option.Intruder.Payload))
 
 	t.Loop(0, via, pool)
-
 	pool.Wait()
-
 	audit.Debug("%s crack end", t.option.Target.URL()).From(t.option.LState.CodeVM()).Put()
 }
 

@@ -5,6 +5,7 @@ import (
 	strutil "github.com/vela-ssoc/vela-kit/auxlib"
 	"github.com/vela-ssoc/vela-kit/exception"
 	"github.com/vela-ssoc/vela-kit/kind"
+	"net"
 )
 
 const (
@@ -45,6 +46,7 @@ type Encode struct {
 
 type Metadata struct {
 	Option   TaskOption
+	Ping     *Ping
 	Stat     State
 	Poc      Poc
 	Real     Poc
@@ -58,6 +60,7 @@ type Metadata struct {
 	Raw      string //http
 	Banner   string
 	Happy    bool
+	NetConn  net.Conn
 }
 
 func (m *Metadata) Bytes() []byte {
@@ -103,4 +106,8 @@ func (m *Metadata) Select(i int) (string, bool) {
 
 func (m *Metadata) Backup() {
 	m.Real = m.Poc
+}
+
+func (m *Metadata) Dail(network string) (net.Conn, error) {
+	return net.Dial(network, m.Peer())
 }

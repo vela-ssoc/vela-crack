@@ -123,6 +123,11 @@ func (m *Metadata) SetPayloadL(L *lua.LState) int {
 
 func (m *Metadata) Index(L *lua.LState, key string) lua.LValue {
 	switch key {
+	case "state":
+		return lua.S2L(m.Stat.String())
+	case "ok":
+		return lua.LBool(m.Stat.String() == Succeed.String())
+
 	case "response":
 		return lua.ToLValue(m.Response)
 

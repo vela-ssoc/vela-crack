@@ -33,6 +33,7 @@ func (t *Task) VelaData() *lua.VelaData {
 }
 
 func (t *Task) attackL(L *lua.LState) int {
+	go t.Exploit()
 	t.V(lua.VTRun, time.Now())
 	return 0
 }
@@ -96,10 +97,6 @@ func (t *Task) PayloadL(L *lua.LState) int {
 	t.Payload2(filename)
 	L.Push(t.VelaData())
 	return 1
-}
-
-func (t *Task) Init() {
-	return
 }
 
 func (t *Task) intruderL(L *lua.LState) int {
@@ -177,7 +174,12 @@ func (t *Task) intervalL(L *lua.LState) int {
 	}
 	L.Push(t.VelaData())
 	return 1
+}
 
+func (t *Task) NoPassL(L *lua.LState) int {
+	t.option.Secret.NoPass = L.IsTrue(1)
+	L.Push(t.VelaData())
+	return 1
 }
 
 func (t *Task) Index(L *lua.LState, key string) lua.LValue {
@@ -194,6 +196,8 @@ func (t *Task) Index(L *lua.LState, key string) lua.LValue {
 		return lua.NewFunction(t.passwdL)
 	case "P":
 		return lua.NewFunction(t.passwdFileL)
+	case "empty":
+		return lua.NewFunction(t.NoPassL)
 	case "payload":
 		return lua.NewFunction(t.payloadL)
 	case "Payload":

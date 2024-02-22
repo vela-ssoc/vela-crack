@@ -49,7 +49,5 @@ func newCrackL(L *lua.LState) int {
 
 func WithEnv(env vela.Environment) {
 	xEnv = env
-
 	xEnv.Set("crack", lua.NewExport("lua.crack.export", lua.WithFunc(newCrackL)))
-
 }

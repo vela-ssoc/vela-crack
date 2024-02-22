@@ -3,7 +3,6 @@ package help
 import (
 	"fmt"
 	strutil "github.com/vela-ssoc/vela-kit/auxlib"
-	"github.com/vela-ssoc/vela-kit/iputil"
 	"github.com/vela-ssoc/vela-kit/lua"
 	"github.com/vela-ssoc/vela-kit/pipe"
 	"github.com/vela-ssoc/vela-kit/vela"
@@ -20,6 +19,7 @@ type TaskOption struct {
 	LState   *lua.LState
 	Pool     int
 	Once     bool
+	TLS      bool
 	Target   *Target
 	Secret   *Secret
 	Intruder *Intruder
@@ -35,15 +35,28 @@ func (to *TaskOption) Check() error {
 		return fmt.Errorf("not found %s driver", to.Target.Scheme)
 	}
 
-	_, _, err := iputil.NewIter(to.Target.Host)
-	if err != nil {
-		return err
-	}
-
 	return nil
 }
 
-func NewTaskOption(L *lua.LState, xEnv vela.Environment) (*TaskOption, error) {
+func NewTaskOption(L *lua.LState, xEnv vela.Environment, target *Target) (*TaskOption, error) {
+	tv := &TaskOption{
+		LState:   xEnv.Clone(L),
+		Pool:     20,
+		Target:   target,
+		Secret:   new(Secret),
+		Switch:   vswitch.NewL(L),
+		Chains:   pipe.New(pipe.Env(xEnv)),
+		Encode:   pipe.New(pipe.Env(xEnv)),
+		Interval: time.Millisecond * 10,
+		Intruder: &Intruder{
+			AttackType: "sniper",
+		},
+	}
+
+	return tv, nil
+}
+
+func NewTaskOptionL(L *lua.LState, xEnv vela.Environment) (*TaskOption, error) {
 	var scheme string
 	var host string
 	var port uint16
@@ -81,8 +94,9 @@ TARGET:
 
 	tv := &TaskOption{
 		LState:   xEnv.Clone(L),
-		Pool:     100,
+		Pool:     20,
 		Target:   target,
+		Secret:   new(Secret),
 		Switch:   vswitch.NewL(L),
 		Chains:   pipe.New(pipe.Env(xEnv)),
 		Encode:   pipe.New(pipe.Env(xEnv)),
